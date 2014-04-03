@@ -1,13 +1,32 @@
-var io = require('socket.io').listen(80);
-var redis = require('node-redis');
-var g_red = redis.createClient();
+var redis_host = '10.0.0.169';
+var redis_port = 6379;
+var redis_auth = 'Fzt3Gksr4P1U-oiHpAyriz_cvY8HV-4ZARql4GjzQX8=';
+var io = require('socket.io').listen(8888);
+var redis = require('redis');
 var b64 = require('b64');
 var broadcast_channel = "messages";
 
+function makeRedisClient()
+{
+    var client = redis.createClient(redis_port, redis_host);
+    client.auth(redis_auth, function(result)
+    {
+        console.log("created new redis client.");
+    });
+
+    return client;
+}
+
+var g_red = makeRedisClient();
+
+console.log("Resources have been loaded.", b64.encode('Joel Edwards'));
+
 io.sockets.on('connection', function (socket)
 {
+    console.log("connection established");
+
     var client_id = g_red.incr('last-client-id');
-    var red = redis.createClient();
+    var red = makeRedisClient();
     var direct_channel = 'client-' + client_id;
 
     red.on('psubscribe', function(pattern, count)
@@ -54,5 +73,5 @@ io.sockets.on('connection', function (socket)
         red.end();
     });
 
-    g_red.publish(direct_channel, "Welcome client " + client_id);
+    //g_red.publish(direct_channel, "Welcome client " + client_id);
 });
