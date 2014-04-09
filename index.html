@@ -1,11 +1,14 @@
 <html>
 <head>
-    <script source="jquery.js"></script>
-    <script source="socket.io.js"></script>
-    <script source="scripts.js"></script>
+    <script type="text/javascript" src="jquery.js"></script>
+    <script type="text/javascript" src="bower_components/socket.io-client/dist/socket.io.js"></script>
+    <script type="text/javascript" src="bower_components/js-base64/base64.js"></script>
+    <script type="text/javascript" src="scripts.js"></script>
 </head>
 <body>
     <div>
+        <textarea id="display" rows="10" cols="40"></textarea>
+        <input id="msg" value="" type="text" size="40"/>
     </div>
 </body>
 </html>
