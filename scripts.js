@@ -8,7 +8,8 @@ $(document).ready(function()
 	{
 		console.log("Received message: ", data);
 		
-		$('#display').val($('#display').val() + "\n" + Base64.decode(data.body));
+		$('#display').append('<div class="alert alert-success">'
+            + Base64.decode(data.body) + '</div>');
 	});
 
 	$('#msg').keypress(function(e)
