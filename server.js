@@ -6,6 +6,9 @@ var redis = require('redis');
 var b64 = require('b64');
 var broadcast_channel = "messages";
 
+var key_client_stats = "client-stats";
+var key_client_map_prefix = "client-info-";
+
 function makeRedisClient()
 {
 	var client = redis.createClient(redis_port, redis_host);
@@ -25,10 +28,16 @@ io.sockets.on('connection', function(socket)
 {
 	console.log("connection established");
 
+    var client_key;
+    var client_id;
+    var red;
+    var direct_chanel;
+
 	g_red.incr('last-client-id', function(error, buffer) {
-		var client_id = buffer;
-		var red = makeRedisClient();
-		var direct_channel = 'client-' + client_id;
+		client_id = buffer;
+        client_key = key_client_map_prefix + client_id;
+		red = makeRedisClient();
+		direct_channel = 'client-' + client_id;
 
 		console.log("client id: " + buffer);
 
