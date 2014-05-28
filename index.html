@@ -6,36 +6,27 @@
 	<script type="text/javascript" src="jquery.js"></script>
 	<script type="text/javascript" src="bower_components/socket.io-client/dist/socket.io.js"></script>
 	<script type="text/javascript" src="bower_components/js-base64/base64.js"></script>
-	<script type="text/javascript" src="bower_components/bootstrap.css/js/bootstrap.js"></script>
 	<script type="text/javascript" src="scripts.js"></script>
 	
-	<!--link rel="stylesheet" href="bower_components/bootstrap.css/css/bootstrap.css"-->
-
-    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
-    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
-    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+	<link rel="stylesheet" href="styles.css">
 </head>
-<body role="document">
-	<div class="container" role="main">
-        <div class="page-header">
-            <h1>Group Messenger</h1>
+<body>
+	<div class="main">
+        <div class="header">
+            <div class="title">
+                <span>Group Messenger</span>
+            </div>
+            <div class="client">
+                <span></span>
+            </div>
         </div>
-        <div class="row">
-            <div class="cols-lg-12 cols-sm-12">
-                <div class="panel panel-success">
-                    <div class="panel-heading">
-                        <h3 class="panel-title">Messages</h3>
-                    </div>
-                    <div id="display" class="panel-body">
-                    </div>
-                </div>
+        <div id="display">
+        </div>
+        <div class="footer">
+            <div class="input">
+                <input type="text" id="msg" />
             </div>
-		</div>
-        <form class="form-horizontal" role="form">
-            <div class="form-group">
-                <input type="text" class="form-control" id="msg" />
-            </div>
-        </form>
+        </div>
 	</div>
 </body>
 </html>

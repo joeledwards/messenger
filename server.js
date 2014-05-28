@@ -39,6 +39,10 @@ io.sockets.on('connection', function(socket)
 		red = makeRedisClient();
 		direct_channel = 'client-' + client_id;
 
+        socket.emit('welcome', {
+            client_id : client_id
+        });
+
 		console.log("client id: " + buffer);
 
 		red.on('psubscribe', function(pattern, count) {
@@ -51,8 +55,9 @@ io.sockets.on('connection', function(socket)
 			var decoded = b64.decode(message);
 			console.log("Message from " + channel + ": " + decoded);
 			socket.emit('message', {
+                from : decoded.from,
 				encoding : "base64",
-				body : message
+				body : decoded.message
 			});
 		});
 
@@ -71,7 +76,10 @@ io.sockets.on('connection', function(socket)
 		var message = (data.encoding === "base64") ? b64.decode(data.body)
 				: data.body;
 		console.log("Broadcast message: " + message);
-		g_red.publish(broadcast_channel, b64.encode(message));
+		g_red.publish(broadcast_channel, b64.encode({
+            from : client_id,
+            body : message
+        }));
 	});
 
 	socket.on('direct', function(data) {

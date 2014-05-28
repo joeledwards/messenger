@@ -3,12 +3,22 @@ $(document).ready(function()
 	console.log("jQuery is ready");
 
 	var socket = io.connect('http://www.ed-craft.com:8888/');
+    var client_id;
+
+    socket.on('welcome', function(data)
+    {
+        client_id = data.client_id;
+        console.log("I am client " + data.client_id);
+        $('div.client span').append('' + data.client_id);
+    });
 
 	socket.on('message', function(data)
 	{
 		console.log("Received message: ", data);
-		
-		$('#display').append('<div class="alert alert-success">'
+
+        var classify = data.from == client_id ? "sent" : "received";
+
+		$('#display').append('<div class="message ' + classify + '">'
             + Base64.decode(data.body) + '</div>');
 	});
 
