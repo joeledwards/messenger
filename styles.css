@@ -44,24 +44,36 @@ div.display {
 div.message {
     position: relative;
     margin-top: 5px;
-    padding: 2px;
+    padding: 5px;
     height: 20px;
     top: 60px;
     left: 20px;
     right: 50px;
     width: 95%;
+    
+    box-shadow: 3px 3px 3px #888888;
+    border-radius: 3px;
+    border-top-left-radius: 0px;
 }
 
 div.message.sent {
     left: 10px;
-    background-color: black;
+    background-color: #000000;
     color: white;
+}
+
+div.message.sent span.id {
+    color: #aaaaaa;
 }
 
 div.message.received {
     right: 10px;
-    background-color: white;
+    background-color: #ffffff;
     color: black;
+}
+
+div.message.received span.id {
+    color: #666666;
 }
 
 div.footer {

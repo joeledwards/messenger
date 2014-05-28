@@ -17,8 +17,10 @@ $(document).ready(function()
 		console.log("Received message: ", data);
 
         var classify = data.from == client_id ? "sent" : "received";
+        var who = data.from == client_id ? "me" : data.from;
 
-		$('#display').append('<div class="message ' + classify + '">'
+		$('#display').append('<div class="message ' + classify + '"><span class="id">'
+            + who +': </span>'
             + Base64.decode(data.body) + '</div>');
 	});
 

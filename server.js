@@ -52,13 +52,9 @@ io.sockets.on('connection', function(socket)
 		});
 
 		red.on('pmessage', function(pattern, channel, message) {
-			var decoded = b64.decode(message);
-			console.log("Message from " + channel + ": " + decoded);
-			socket.emit('message', {
-                from : decoded.from,
-				encoding : "base64",
-				body : decoded.message
-			});
+			var parsed = JSON.parse(message);
+			console.log("Message from " + channel + ": " + parsed);
+			socket.emit('message', parsed);
 		});
 
 		red.on('punsubscribe', function(pattern, count) {
@@ -75,10 +71,12 @@ io.sockets.on('connection', function(socket)
 	socket.on('broadcast', function(data) {
 		var message = (data.encoding === "base64") ? b64.decode(data.body)
 				: data.body;
+        var encodedMessage = b64.encode(message);
 		console.log("Broadcast message: " + message);
-		g_red.publish(broadcast_channel, b64.encode({
+		g_red.publish(broadcast_channel, JSON.stringify({
             from : client_id,
-            body : message
+            encoding : "base64",
+            body : encodedMessage
         }));
 	});
 
