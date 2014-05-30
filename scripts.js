@@ -22,6 +22,8 @@ $(document).ready(function()
 		$('#display').append('<div class="message ' + classify + '"><span class="id">'
             + who +': </span>'
             + Base64.decode(data.body) + '</div>');
+
+        $("body").scrollTop($(document).height());
 	});
 
 	$('#msg').keypress(function(e)
@@ -40,4 +42,6 @@ $(document).ready(function()
 			return false;
 		}
 	});
+
+    $('#msg').focus();
 });

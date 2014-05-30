@@ -1,4 +1,14 @@
+html {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+}
+
 body {
+    height: 100%;
+    width: 100%;
+    overflow: auto;
+
     top: 0px;
     left: 0px;
     right: 0px;
@@ -6,8 +16,8 @@ body {
     background-color: #eeeeee;
 }
 
-div.header {
-    position: absolute;
+div#header {
+    position: fixed;
     top: 0px;
     left: 10px;
     right: 10px;
@@ -15,9 +25,38 @@ div.header {
     text-align: center;
     background-color: #bbbbbb;
     vertical-align: middle;
-    box-shadow: 5px 5px 6px #888888;
+    box-shadow: 5px 5px 6px #000000;
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
+}
+
+div#footer {
+    position: fixed;
+    left: 10px;
+    right: 10px;
+    bottom: 15px;
+    height: 51px;
+    background-color: #bbbbbb;
+    vertical-align: middle;
+    box-shadow: 5px 5px 6px #000000;
+    border-radius: 5px;
+}
+
+div.input {
+    position: absolute;
+    left: 9px;
+    right: 14px;
+    bottom: 13px;
+    height: 30px;
+    vertical-align: middle;
+}
+
+input#msg {
+    width: 100%;
+    left: 0px;
+    height: 30px;
+    font-size: 18pt;
+    border-radius: 5px;
 }
 
 div.title span {
@@ -32,24 +71,17 @@ div.client span {
     font-size: 20pt;
 }
 
-div.display {
-    position: absolute;
-    top: 70px;
-    left: 20px;
-    right: 20px;
-    bottom: 70px;
-    overflow: scroll;
+div#display {
+    padding-top: 55px;
+    padding-bottom: 90px;
 }
 
 div.message {
     position: relative;
     margin-top: 5px;
     padding: 5px;
-    height: 20px;
-    top: 60px;
-    left: 20px;
-    right: 50px;
     width: 95%;
+    left: 1.25%;
     
     box-shadow: 3px 3px 3px #888888;
     border-radius: 3px;
@@ -57,7 +89,6 @@ div.message {
 }
 
 div.message.sent {
-    left: 10px;
     background-color: #000000;
     color: white;
 }
@@ -67,7 +98,6 @@ div.message.sent span.id {
 }
 
 div.message.received {
-    right: 10px;
     background-color: #ffffff;
     color: black;
 }
@@ -76,27 +106,8 @@ div.message.received span.id {
     color: #666666;
 }
 
-div.footer {
-    position: absolute;
-    left: 0px;
-    right: 0px;
-    bottom: 0px;
-    height: 50px;
-    vertical-align: middle;
-}
-
-div.input {
-    position: absolute;
-    left: 20px;
-    right: 20px;
-    bottom: 20px;
-    height: 30px;
-    vertical-align: middle;
-}
-
-input#msg {
-    width: 100%;
-    left: 0px;
-    height: 30px;
-    font-size: 18pt;
+div#bottom {
+    height: 0px;
+    padding: 0;
+    margin: 0;
 }
