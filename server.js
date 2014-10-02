@@ -10,14 +10,18 @@ var broadcast_channel = "messages";
 var key_client_stats = "client-stats";
 var key_client_map_prefix = "client-info-";
 
-var redis_host = '10.0.0.169';
-var redis_port = 6379;
-var redis_auth = 'Fzt3Gksr4P1U-oiHpAyriz_cvY8HV-4ZARql4GjzQX8=';
-
 var args = parse_args(process.argv.slice(2));
-var debug = _.contains(args._, "debug");
 
-var http_port = debug ? 8080 : 80;
+var debug = "d" in args;
+var http_port = "http_port" in args ? args.http_port : 8080;
+var redis_host = "redis_host" in args ? args.redis_host : '10.0.0.169';
+var redis_port = "redis_port" in args ? args.redis_port :  6379;
+var redis_auth = "redis_auth" in args ? args.redis_auth : 'Fzt3Gksr4P1U-oiHpAyriz_cvY8HV-4ZARql4GjzQX8=';
+
+console.log("Debug mode:", debug);
+console.log("Redis host:", redis_host);
+console.log("Redis port:", redis_port);
+console.log("Redis auth:", redis_auth);
 
 function makeRedisClient()
 {
