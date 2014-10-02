@@ -15,7 +15,7 @@ var redis_port = 6379;
 var redis_auth = 'Fzt3Gksr4P1U-oiHpAyriz_cvY8HV-4ZARql4GjzQX8=';
 
 var args = parse_args(process.argv.slice(2));
-var debug = args._.contains("debug");
+var debug = _.contains(args._, "debug");
 
 var http_port = debug ? 8080 : 80;
 var messenger_port = 8888;
