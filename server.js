@@ -1,6 +1,6 @@
-var file_server = require('node-static');
+var node_static = require('node-static');
 var parse_args = require('minimist');
-var socket_io = require('socket.io');
+var io = require('socket.io');
 var redis = require('redis');
 var http = require('http');
 var b64 = require('b64');
@@ -18,15 +18,6 @@ var args = parse_args(process.argv.slice(2));
 var debug = _.contains(args._, "debug");
 
 var http_port = debug ? 8080 : 80;
-var messenger_port = 8888;
-
-http.createServer(function(request, response)
-{
-    request.addListener('end', function()
-    {
-        file_server.Server('./www').server(request, response);   
-    }).resume();
-}).listen(http_port);
 
 function makeRedisClient()
 {
@@ -40,10 +31,19 @@ function makeRedisClient()
 }
 
 var g_red = makeRedisClient();
+var file_server = new node_static.Server('./www');
 
 console.log("Resources have been loaded.", b64.encode('Joel Edwards'));
 
-socket_io.listen(messenger_port).sockets.on('connection', function(socket)
+var server = http.createServer(function(request, response)
+{
+    request.addListener('end', function()
+    {
+        file_server.serve(request, response);   
+    }).resume();
+});
+
+io.listen(server).sockets.on('connection', function(socket)
 {
 	console.log("connection established");
 
@@ -113,3 +113,7 @@ socket_io.listen(messenger_port).sockets.on('connection', function(socket)
 		red.end();
 	});
 });
+
+console.log("Listening on port", http_port);
+server.listen(http_port);
+

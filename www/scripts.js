@@ -2,7 +2,7 @@ $(document).ready(function()
 {
 	console.log("jQuery is ready");
 
-	var socket = io.connect('http://www.ed-craft.com:8888/');
+	var socket = io.connect('/');
     var client_id;
 
     socket.on('welcome', function(data)
