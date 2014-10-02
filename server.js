@@ -1,13 +1,32 @@
+var file_server = require('node-static');
+var parse_args = require('minimist');
+var socket_io = require('socket.io');
+var redis = require('redis');
+var http = require('http');
+var b64 = require('b64');
+var _ = require('lodash');
+
+var broadcast_channel = "messages";
+var key_client_stats = "client-stats";
+var key_client_map_prefix = "client-info-";
+
 var redis_host = '10.0.0.169';
 var redis_port = 6379;
 var redis_auth = 'Fzt3Gksr4P1U-oiHpAyriz_cvY8HV-4ZARql4GjzQX8=';
-var io = require('socket.io').listen(8888);
-var redis = require('redis');
-var b64 = require('b64');
-var broadcast_channel = "messages";
 
-var key_client_stats = "client-stats";
-var key_client_map_prefix = "client-info-";
+var args = parse_args(process.argv.slice(2));
+var debug = args._.contains("debug");
+
+var http_port = debug ? 8080 : 80;
+var messenger_port = 8888;
+
+http.createServer(function(request, response)
+{
+    request.addListener('end', function()
+    {
+        file_server.Server('./www').server(request, response);   
+    }).resume();
+}).listen(http_port);
 
 function makeRedisClient()
 {
@@ -24,7 +43,7 @@ var g_red = makeRedisClient();
 
 console.log("Resources have been loaded.", b64.encode('Joel Edwards'));
 
-io.sockets.on('connection', function(socket)
+socket_io.listen(messenger_port).sockets.on('connection', function(socket)
 {
 	console.log("connection established");
 
