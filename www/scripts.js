@@ -24,11 +24,12 @@ $(document).ready(function()
 
         console.log("    window:", $(window).height());
         console.log("  document:", $(document).height());
-        console.log("   display:", $("#display").height());
-        console.log("      body:", $("body").height());
         console.log("      html:", $("html").height());
+        console.log("      body:", $("body").height());
+        console.log("      main:", $("#main").height());
+        console.log("   display:", $("#display").height());
 
-        $('#display').scrollTop($('#display').height() - $('body').height());
+        $('#main').scrollTop($('#main').height() - $('body').height());
     });
 
     $('#msg').keypress(function(e)
