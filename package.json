@@ -10,6 +10,7 @@
         "gulp" : "*",
         "gulp-jasmine" : "*",
         "gulp-jshint" : "*",
+        "hiredis" : "*",
         "jasmine" : "*",
         "jshint" : "*",
         "json3" : "*",
