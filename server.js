@@ -37,15 +37,11 @@ var KEY_CLIENT_MAP_PREFIX = "client-info-";
 config.full().then(function(config) {
     var context = {};
     context.config = config;
-    console.log("config:", config);
 
     return context;
 }).then(function(context) {
-    console.log("Context created.");
-
     return db.redis(context.config.redis).then(function(globalRedis) {
         context.redis = globalRedis;
-        console.log("Redis client created.");
 
         return context;
     });
