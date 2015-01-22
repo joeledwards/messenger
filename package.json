@@ -1,0 +1,31 @@
+{
+    "name" : "messenger",
+    "version" : "1.0.0",
+    "private" : false,
+
+    "main" : "server",
+
+    "dependencies" : {
+        "b64" : "*",
+        "gulp" : "*",
+        "gulp-jasmine" : "*",
+        "gulp-jshint" : "*",
+        "jasmine" : "*",
+        "jshint" : "*",
+        "json3" : "*",
+        "lodash" : "*",
+        "minimist" : "*",
+        "moment" : "*",
+        "node-inspector" : "*",
+        "node-static" : "*",
+        "q" : "*",
+        "queue-async" : "*",
+        "redis" : "*",
+        "socket.io" : "*",
+        "sqlite3" : "*"
+    },
+
+    "scripts" : {
+        "start" : "node server"
+    }
+}
