@@ -2,7 +2,7 @@ $(document).ready(function()
 {
     console.log("jQuery is ready");
 
-    var socket = io.connect('/');
+    var socket = io.connect('ws://');
     var client_id;
     var client_alias;
 
