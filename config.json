@@ -2,7 +2,7 @@
     "redis" : {
         "host" : "10.0.0.169",
         "port" : 6379,
-        "auth" : "Fzt3Gksr4P1U-oiHpAyriz_cvY8HV-4ZARql4GjzQX8="
+        "password" : "Fzt3Gksr4P1U-oiHpAyriz_cvY8HV-4ZARql4GjzQX8="
     },
 
     "server" : {

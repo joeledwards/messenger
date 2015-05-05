@@ -11,6 +11,7 @@
         "gulp-jasmine" : "*",
         "gulp-jshint" : "*",
         "hiredis" : "*",
+        "ioredis" : "*",
         "jasmine" : "*",
         "jshint" : "*",
         "json3" : "*",
