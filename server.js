@@ -21,6 +21,7 @@ TODO: TESTING
 
 var _ = require('lodash');
 var Q = require('q');
+var FS = require('fs');
 var io = require('socket.io');
 var b64 = require('b64');
 var http = require('http');
@@ -35,7 +36,7 @@ var KEY_CLIENT_STATS = "client-stats";
 var KEY_CLIENT_MAP_PREFIX = "client-info-";
 
 var configFile = 'config.json';
-var config = require(configFile);
+var config = JSON.parse(FS.readFileSync(configFile));
 var redis = new Redis(config.redis);
 
 var fileServer = new node_static.Server('./www');
@@ -46,13 +47,11 @@ var server = http.createServer(function (request, response) {
   .resume();
 });
 
-var bindPort = context.config.server.bind_port;
+var bindPort = config.server.bind_port;
 console.log("Listening on port", bindPort);
-context.server.listen(bindPort);
+server.listen(bindPort);
 
 console.log("Resources have been loaded.", b64.encode('Joel Edwards'));
-
-io(context.server).on('connection', handleConnect);
 
 var handleConnect = function (socket) {
   console.log("connection established");
@@ -227,4 +226,6 @@ var handleConnect = function (socket) {
     console.log("Error:", error, "\nStack:\n", error.stack);
   });
 };
+
+io(server).on('connection', handleConnect);
 
