@@ -1,33 +1,21 @@
 {
-    "name" : "messenger",
-    "version" : "1.0.0",
-    "private" : false,
-
-    "main" : "server",
-
-    "dependencies" : {
-        "b64" : "*",
-        "gulp" : "*",
-        "gulp-jasmine" : "*",
-        "gulp-jshint" : "*",
-        "hiredis" : "*",
-        "ioredis" : "*",
-        "jasmine" : "*",
-        "jshint" : "*",
-        "json3" : "*",
-        "lodash" : "*",
-        "minimist" : "*",
-        "moment" : "*",
-        "node-inspector" : "*",
-        "node-static" : "*",
-        "q" : "*",
-        "queue-async" : "*",
-        "redis" : "*",
-        "socket.io" : "*",
-        "sqlite3" : "*"
-    },
-
-    "scripts" : {
-        "start" : "node server"
-    }
+  "name": "messenger",
+  "version": "1.0.0",
+  "private": false,
+  "main": "server",
+  "dependencies": {
+    "b64": "*",
+    "express": "*",
+    "hiredis": "*",
+    "ioredis": "*",
+    "lodash": "*",
+    "log-a-log": "*",
+    "moment": "*",
+    "q": "*",
+    "redis": "*",
+    "ws": "*"
+  },
+  "scripts" : {
+    "start" : "node server"
+  }
 }

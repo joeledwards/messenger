@@ -1,0 +1,15 @@
+redis:
+  image: redis:3
+  ports:
+    - 6379:6379
+
+node:
+  image: node:5
+  links:
+    - redis:redis
+  ports:
+    - 8080:8080
+  volumes:
+    - .:/mnt
+  command: /bin/bash -c "cd /mnt && node server.js"
+

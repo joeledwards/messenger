@@ -19,47 +19,52 @@ TODO: TESTING
    what to expect during correct operation)
 */
 
-var _ = require('lodash');
-var Q = require('q');
-var FS = require('fs');
-var io = require('socket.io');
-var b64 = require('b64');
-var http = require('http');
-var Redis = require('ioredis');
-var node_static = require('node-static');
+require('log-a-log');
 
-var config = require('./js/mods/config');
-var db = require('./js/mods/db');
+const FS = require('fs');
+const WebSocketServer = require('ws').Server;
+const b64 = require('b64');
+const Redis = require('ioredis');
+const express = require('express');
 
-var BROADCAST_CHANNEL = "messages";
-var KEY_CLIENT_STATS = "client-stats";
-var KEY_CLIENT_MAP_PREFIX = "client-info-";
+const config = require('./js/mods/config');
 
-var configFile = 'config.json';
-var config = JSON.parse(FS.readFileSync(configFile));
-var redis = new Redis(config.redis);
+const BROADCAST_CHANNEL = "messages";
+const KEY_CLIENT_STATS = "client-stats";
+const KEY_CLIENT_MAP_PREFIX = "client-info-";
 
-var fileServer = new node_static.Server('./www');
-var server = http.createServer(function (request, response) {
-  request.addListener('end', function () {
-    fileServer.serve(request, response);
-  })
-  .resume();
+//const configFile = 'config.json';
+//const config = JSON.parse(FS.readFileSync(configFile));
+
+//const redis = new Redis(config.redis);
+const redis = new Redis({
+  host: 'redis',
+  port: 6379
 });
 
-var bindPort = config.server.bind_port;
-console.log("Listening on port", bindPort);
-server.listen(bindPort);
+const app = express();
 
-console.log("Resources have been loaded.", b64.encode('Joel Edwards'));
+//var bindPort = config.server.bind_port;
+var bindPort = 8080;
 
-var handleConnect = function (socket) {
-  console.log("connection established");
+const wss = new WebSocketServer({server: app, path: "/messages"});
 
+// A new client has connected, everything within the handler function
+// is relevant to the newly connected client.
+wss.on('connection', (ws) => {
+  console.log("New connection opened.");
+
+  // Get the next client ID from Redis
   redis.incr('last-client-id')
-  .then(function (clientId) {
+
+  // Setup the new client's context
+  .then((clientId) => {
+    console.log(`Client ${clientId} joined the server.`);
+
+    // Send a welcome message to the new client containing their clientId
     socket.emit('welcome', { client_id : clientId });
-    console.log("Client", clientId, "joined the server.");
+
+    // Establish a dedicated Redis connection for this client
     var clientRedis = new Redis(config.redis);
 
     return {
@@ -67,75 +72,87 @@ var handleConnect = function (socket) {
       redis: clientRedis
     };
   })
-  .then(function (context) {
+
+  .then((context) => {
+    console.log(`Context setup complete for client ${context.clientId}`);
+
     var clientId = context.clientId;
-    var client_alias = b64.encode("" + clientId);
+    var clientAlias = b64.encode("" + clientId);
     var client_key = KEY_CLIENT_MAP_PREFIX + clientId;
 
     // Log all channel subscribe actions
-    context.redis.on('psubscribe', function (pattern, count)
-    {
-      console.log("client " + clientId + 
-          " subscribed to channel(s) matching \"" + pattern + 
-          "\" (" + count + " total subscriptions)");
+    context.redis.on('psubscribe', (pattern, count) => {
+      console.log(`client ${clientId} subscribed to channel(s) matching "${pattern}" (${count} total subscriptions)`);
     });
 
     // Forward all pub/sub channel messages to the socket
-    context.redis.on('pmessage', function (pattern, channel, message)
-    {
+    context.redis.on('pmessage', (pattern, channel, message) => {
       var parsed = JSON.parse(message);
-      console.log("Message from " + channel + ": " + parsed);
+      console.log(`Message from ${channel}: ${parsed}`);
       socket.emit('message', parsed);
     });
 
     // Log all channels un-subscribe actions
-    context.redis.on('punsubscribe', function (pattern, count)
-    {
-      console.log("client " + clientId + 
-          " un-subscribed from channel(s) matching \"" + pattern + 
-          "\" (" + count + " total subscriptions)");
+    context.redis.on('punsubscribe', (pattern, count) => {
+      console.log(`client ${clientId} un-subscribed from channel(s) matching "${pattern}" (${count} total subscriptions)`);
     });
 
-    socket.on('disconnect', function ()
-    {
-      console.log("client " + clientId + " disconnected");
-      context.redis.punsubscribe("*");
+    // Handle client disconnects, ensuring to remove their profile from Redis
+    socket.on('disconnect', () => {
+      console.log(`client ${clientId} disconnected.`);
 
-      context.redis.hget("client-alias-hash", clientId)
-      .then(function (alias) {
-        console.log("dissassociating client " + clientId + " from alias '" + alias + "'");
+      // Unsubscribe from all channels
+      context.redis.punsubscribe("*")
 
-        return context.redis.hdel("client-alias-hash", alias);
+      // Determine whether the client had setup an alias
+      .then((result) => {
+        console.log(`Performing lookup on existing alias for client ${context.clientId}...`);
+
+        return redis.hget("client-alias-hash", clientId);
       })
-      .then(function () {
-        return context.redis.hdel("client-alias-hash", clientId);
+
+      // Remove the client alias
+      .then((alias) => {
+        console.log(`Dissassociating client ${clientId} from alias '${alias}'`);
+
+        return redis.hdel("client-alias-hash", alias);
       })
-      .then(function () {
+
+      // Delete the reverse relation
+      .then(() => redis.hdel("client-alias-hash", clientId))
+
+      // Disconnecting Redis client
+      .then(() => {
+        console.log(`Disassociating client ${clientId}, disconnecting Redis client...`);
+
         context.redis.disconnect();
       })
-      .catch(function (error) {
-        console.log("Error disassociating client " + clientId + " from alias '" + alias + "': " + error);
+
+      // Handle any errors with client cleanup
+      .catch((error) => {
+        console.log(`Error disassociating client ${clientId} from alias '${alias}': ${error}`);
       });
     });
 
-    var direct_channel = 'client-' + clientId;
+    var directChannel = 'client-' + clientId;
 
     // Subscribe to pub/sub channels
-    context.redis.psubscribe(BROADCAST_CHANNEL, direct_channel, function (error, count) {
-      if (error) {
-        console.log("Error subscribing to channels:", error);
-      } else {
-        console.log("[client-" + clientId + "] Subscribed to " + count + " channels.");
-      }
+    context.redis.psubscribe(BROADCAST_CHANNEL, directChannel)
+
+    .then((count) => {
+      console.log(`[client-${clientId}] Subscribed to ${count} channels.`);
+    })
+
+    .catch((error) => {
+      console.log("Error subscribing to channels:", error);
     });
 
-    socket.on('broadcast', function (data)
-    {
+    socket.on('broadcast', (data) => {
       console.log("Broadcast message: " + b64.decode(data.body));
 
       context.redis.publish(BROADCAST_CHANNEL, JSON.stringify({
         from: clientId,
-        alias: client_alias,
+        alias: clientAlias,
         body: data.body
       }));
     });
@@ -145,69 +162,82 @@ var handleConnect = function (socket) {
     // When the invitee acttpts the reverse gets added (invitee, initiator)
     // There should be a way to throttle the number of invites 
     // (perhaps once every minute?)
-    socket.on('direct', function (data) {
-      console.log("Direct message to client " + data.recipient + ": " + 
-          b64.decode(data.body));
+    socket.on('direct', (data) => {
+      console.log(`Direct message to client ${data.recipient}: ${b64.decode(data.body)}`);
 
       context.redis.publish('client-' + data.recipient, JSON.stringify({
         from: clientId,
-        alias: client_alias,
+        alias: clientAlias,
         body: data.body
       }));
     });
 
 
-    socket.on('alias', function (data)
-    {
-      console.log("client " + clientId + " alias request: " + data);
-      var new_alias = data.alias;
+    socket.on('alias', (data) => {
+      console.log(`client ${clientId} alias request: ${data}`);
+      var newAlias = data.alias;
 
       // Attempt to set the alias of the client
-      context.redis.hsetnx("client-alias-hash", new_alias, clientId)
-      .then(function (aliasUpdated) {
+      context.redis.hsetnx("client-alias-hash", newAlias, clientId)
+      .then((aliasUpdated) => {
         if (aliasUpdated == 0) { // alias already set
           console.log("client " + clientId + " requested alias '" + 
-              b64.decode(new_alias) + "', but it was already in use by client " + 
+              b64.decode(newAlias) + "', but it was already in use by client " + 
               alias_owner);
 
           // If the alias could not be set, inform the requesting client
           socket.emit('message', {
               from : 0,
               alias : b64.encode("server"),
-              body : b64.encode("Alias '" + b64.decode(new_alias) + 
+              body : b64.encode("Alias '" + b64.decode(newAlias) + 
                   "' is already in use")
           });
         } 
         else { // new alias set
-          console.log("client " + clientId + " has been associated with alias '" + b64.decode(new_alias) + "'");
+          console.log(`Client ${clientId} has been associated with alias '${b64.decode(newAlias)}'`);
 
           // If the alias was set, store the alias in the reverse hash
-          var old_alias = client_alias;
-          client_alias = new_alias;
-          context.redis.hset("client-id-hash", clientId, client_alias)
-          .then(function () {
+          var oldAlias = clientAlias;
+          clientAlias = newAlias;
+
+          // Set the client alias
+          context.redis.hset("client-id-hash", clientId, clientAlias)
+
+          // Broadcast the alias change
+          .then(() => {
+            var oldAliasRaw = b64.decode(oldAlias);
+            var newAliasRaw = b64.decode(newAlias);
+
             return context.redis.publish(BROADCAST_CHANNEL, JSON.stringify({
               from: 0,
               alias: b64.encode("server"),
-              body: b64.encode("Client " + clientId + " has changed alias from '" + 
-                  b64.decode(old_alias) + "' to '" + b64.decode(new_alias) + "'")
+              body: b64.encode(`Client ${clientId} has changed alias from '${oldAliasRaw}' to '${newAliasRaw}'`)
             }));
-          }).then(function () {
-            socket.emit('alias', { alias : client_alias });
+          })
+
+          // Emit the alias update to the client
+          .then(() => {
+            socket.emit('alias', { alias : clientAlias });
             return context;
-          }).then(function () {
+          })
+
+          // Fetch the old alias
+          .then(() => {
             return context.redis.hget("client-id-hash", clientId)
           })
-          .then(function (old_alias) {
-            if (old_alias) {
-              context.redis.hdel("client-alias-hash", old_alias)
-              .then(function (result) {
-                console.log("client " + clientId + " has been disassociated" + 
-                    " from alias '" + b64.decode(old_alias) + "'");
+
+          // Delete the old alias
+          .then((oldAlias) => {
+            if (oldAlias) {
+              context.redis.hdel("client-alias-hash", oldAlias)
+              .then((result) => {
+                console.log(`Client ${clientId} has been disassociated from alias '${b64.decode(oldAlias)}`);
               });
             }
           })
-          .catch(function (error) {
+          
+          // Handle any errors updating the client's alias
+          .catch((error) => {
             console.log("Error updating client alias:", error, "\nStack:\n", error.stack);
           });
         }
@@ -219,13 +249,25 @@ var handleConnect = function (socket) {
     socket.emit('message', {
         from : 0,
         alias : b64.encode("server"),
-        body : b64.encode("Welcome client " + clientId)
+        body : b64.encode(`Welcome client ${clientId}`)
     });
   })
-  .catch(function (error) {
+
+  // Handle any errors with the client socket
+  .catch((error) => {
     console.log("Error:", error, "\nStack:\n", error.stack);
   });
-};
 
-io(server).on('connection', handleConnect);
+  ws.on('message', (message) => {
+    // TODO: Figure out what this is for. Perhaps direct messages?
+  });
+});
+
+// Add static middleware for the www directory
+app.use('/', express.static('www'));
+
+// Start the server
+app.listen(bindPort, () => {
+  console.log(`Listening on port ${bindPort}...`);
+});
 

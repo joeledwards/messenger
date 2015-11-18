@@ -1,6 +1,5 @@
 var Q = require('q');
 var FS = require('fs');
-var json = require('json3');
 
 var readJson = function(configFile) {
     var deferred = Q.defer();
@@ -9,7 +8,7 @@ var readJson = function(configFile) {
         if (error)
             deferred.reject(error);
         else
-            deferred.resolve(json.parse(data));
+            deferred.resolve(JSON.parse(data));
     });
 
     return deferred.promise;
